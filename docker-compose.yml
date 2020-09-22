@@ -10,7 +10,7 @@ services:
       SERVER_SSL_ENABLE: "false"
       APP_DEBUG: "true"
       APP_OVERRIDEVOLUMECOLLISIONS: "true"
-      APP_TARGETCONTAINERNAME: "busybox"
+      APP_TARGETNAMESPACE: "webhook-demo"
       APP_EMPTYDIR_VOLUMENAME: "icgc-argo-scratch"
       APP_EMPTYDIR_MOUNTPATH:  "/icgc-argo-scratch"
     expose:
