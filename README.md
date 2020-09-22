@@ -1,5 +1,4 @@
-# Kubernetes Admission Controller Webhook Demo
-
+# RDPC Kube Mutating Webhook
 ## Tools
 1. Take a left json and right json, generate a list of jsonPatches: https://json-patch-builder-online.github.io/
 2. Take an input json and a list of patches, and generate what the output json would look like: https://json-schema-validator.herokuapp.com/jsonpatch.jsp
