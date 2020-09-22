@@ -46,6 +46,10 @@ func findTargetContainer(pod *v1.Pod, targetContainerName string) (*v1.Container
 	return nil, -1, fmt.Errorf("container with name %s does not exist", targetContainerName)
 }
 
+func isPodInNamespace(pod *v1.Pod, targetNamespace string) bool {
+	return pod.Namespace == targetContainerName
+}
+
 func extractPodSpec(req *v1beta1.AdmissionRequest) (v1.Pod, error) {
 	pod := v1.Pod{}
 	// This handler should only get called on Pod objects as per the MutatingWebhookConfiguration in the YAML file.

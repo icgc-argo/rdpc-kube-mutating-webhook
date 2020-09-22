@@ -39,9 +39,9 @@ var (
 
 	// Defaults
 	overrideVolumePathCollision = true
-	targetContainerName = "busybox"
 	scratchDirName = "/icgc-argo-scratch"
 	scratchVolumeName = "icgc-argo-scratch"
+	targetNamespace = ""
 	debug = false
 )
 
@@ -130,6 +130,12 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 		return patches, err
 	}
 
+	if !isPodInNamespace(&pod, targetNamespace){
+		log.Println("Pod request with name '",pod.Name,"' does not belong to targetNamespace '",targetNamespace,"', skipping mutation.")
+		return patches, nil
+	} else {
+		log.Println("Pod request with name '",pod.Name,"' detected for targetNamespace '",targetNamespace,"'. Continuing with mutation.")
+	}
 
 	if hasVolume(&pod, scratchVolumeName){
 		log.Println("Already contains the scratch volume name: ", scratchVolumeName)
@@ -138,30 +144,27 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 
 	patches = appendEmptyDirPatch(patches)
 
-	var container, containerPos, err2 = findTargetContainer(&pod, targetContainerName)
-	if err2 != nil {
-		log.Println("Did not find container with name '",targetContainerName,"'. Skipping mutation")
-		return patches, nil
+	if pod.Spec.Containers != nil {
+		for containerPos, container := range pod.Spec.Containers {
+			var containerVolumeMount, volumeMountPos = findVolumeMount(&container)
+			patches =  appendVolumeMountPatch(patches, containerPos, volumeMountPos, containerVolumeMount)
+		}
 	}
-
-	var containerVolumeMount, volumeMountPos = findVolumeMount(container)
-	patches =  appendVolumeMountPatch(patches, containerPos, volumeMountPos, containerVolumeMount)
 
 	if debug {
 		dumpPodSpecs(&pod)
 		dumpPatches(patches)
 	}
-
 	return patches, nil
 }
 
 func main() {
 	// Bind the config to the variables
 	var cfg = parseConfig()
-	targetContainerName = cfg.App.TargetContainerName
 	overrideVolumePathCollision = cfg.App.OverrideVolumeCollisions
 	scratchDirName = cfg.App.EmptyDir.MountPath
 	scratchVolumeName = cfg.App.EmptyDir.VolumeName
+	targetNamespace = cfg.App.TargetNamespace
 	debug = cfg.App.Debug
 
 	// Start server

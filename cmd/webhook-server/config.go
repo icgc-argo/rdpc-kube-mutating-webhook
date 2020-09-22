@@ -81,7 +81,7 @@ type Config struct {
 	App struct {
 		Debug bool `default:"false", validate:"required",yaml:"debug",envconfig:"APP_DEBUG"`
 		OverrideVolumeCollisions bool   `default:"false", validate:"required", yaml:"overrideVolumeCollisions", envconfig:"APP_OVERRIDEVOLUMECOLLISIONS"`
-		TargetContainerName      string `validate:"required", yaml:"targetContainerName", envconfig:"APP_TARGETCONTAINERNAME"`
+		TargetNamespace string `validate:"required", yaml:"targetNamespace", envconfig:"APP_TARGETNAMESPACE"`
 		EmptyDir                 struct {
 			VolumeName string `validate:"required", yaml:"volumeName", envconfig:"APP_EMPTYDIR_VOLUMENAME"`
 			MountPath  string `validate:"required", yaml:"mountPath", envconfig:"APP_EMPTYDIR_MOUNTPATH"`
