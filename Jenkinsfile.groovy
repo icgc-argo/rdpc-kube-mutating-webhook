@@ -29,6 +29,12 @@ apiVersion: v1
 kind: Pod
 spec:
   containers:
+  - name: node
+    image: node:12.6.0
+    tty: true
+    env:
+    - name: DOCKER_HOST
+      value: tcp://localhost:2375
   - name: docker
     image: docker:18-git
     tty: true

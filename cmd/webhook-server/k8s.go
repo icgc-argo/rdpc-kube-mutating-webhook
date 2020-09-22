@@ -47,7 +47,7 @@ func findTargetContainer(pod *v1.Pod, targetContainerName string) (*v1.Container
 }
 
 func isPodInNamespace(pod *v1.Pod, targetNamespace string) bool {
-	return pod.Namespace == targetContainerName
+	return pod.Namespace == targetNamespace
 }
 
 func extractPodSpec(req *v1beta1.AdmissionRequest) (v1.Pod, error) {
