@@ -1,0 +1,103 @@
+{
+  "apiVersion": "admission.k8s.io/v1",
+  "kind": "AdmissionReview",
+  "request": {
+    "kind": {
+      "group": "",
+      "version": "v1",
+      "kind": "Pods"
+    },
+    "resource": {
+      "group": "",
+      "version": "v1",
+      "resource": "pods"
+    },
+    "operation": "CREATE",
+    "object": {
+        "kind":"Pod",
+		"apiVersion":"v1",
+		"metadata":{
+			"name":"pod-with-defaults",
+			"namespace":"webhook-demo",
+			"creationTimestamp":null,
+			"labels":{
+				"app":"pod-with-defaults"
+			},
+			"annotations":{
+				"kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Pod\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"pod-with-defaults\"},\"name\":\"pod-with-defaults\",\"namespace\":\"webhook-demo\"},\"spec\":{\"containers\":[{\"command\":[\"sh\",\"-c\",\"echo I am running as user $(id -u)\"],\"image\":\"busybox\",\"name\":\"busybox\"}],\"restartPolicy\":\"OnFailure\"}}\n",
+				"kubernetes.io/psp":"privileged"
+			}
+		},
+		"spec":{
+			"volumes":[
+				{
+					"name":"default-token-rftsq",
+					"secret":{
+						"secretName":"default-token-rftsq"
+					}
+				}
+			],
+			"containers":[
+				{
+					"name":"busybox2",
+					"image":"busybox",
+					"command":["sh","-c","echo I am running as user $(id -u)"],
+					"resources":{},
+					"volumeMounts":[
+						{
+							"name":"default-token-rftsq",
+							"readOnly":true,
+							"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"
+						}
+					],
+					"terminationMessagePath":"/dev/termination-log",
+					"terminationMessagePolicy":"File",
+					"imagePullPolicy":"Always"
+				},
+				{
+					"name":"busybox",
+					"image":"busybox",
+					"command":["sh","-c","echo I am running as user $(id -u)"],
+					"resources":{},
+					"volumeMounts":[
+						{
+							"name":"default-token-rftsq",
+							"readOnly":true,
+							"mountPath":"/var/run/secrets/kubernetes.io/serviceaccount"
+						},
+						{ "name": "icgc-argo-scratch", "mountPath": "/something-different" }
+
+					],
+					"terminationMessagePath":"/dev/termination-log",
+					"terminationMessagePolicy":"File",
+					"imagePullPolicy":"Always"
+				}
+			],
+			"restartPolicy":"OnFailure",
+			"terminationGracePeriodSeconds":30,
+			"dnsPolicy":"ClusterFirst",
+			"serviceAccountName":"default",
+			"serviceAccount":"default",
+			"securityContext":{},
+			"schedulerName":"default-scheduler",
+			"tolerations":[
+				{
+					"key":"node.kubernetes.io/not-ready",
+					"operator":"Exists",
+					"effect":"NoExecute",
+					"tolerationSeconds":300
+				},
+				{
+					"key":"node.kubernetes.io/unreachable",
+					"operator":"Exists",
+					"effect":"NoExecute",
+					"tolerationSeconds":300
+				}
+			],
+			"priority":0,
+			"enableServiceLinks":true
+		},
+		"status":{}
+    }
+  }
+}
