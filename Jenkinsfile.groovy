@@ -71,20 +71,6 @@ spec:
 
         }
 
-        //stage('Test') {
-          //steps {
-            //container('node') {
-              //sh "npm ci"
-            //}
-            //container('node') {
-              //sh "npm run unit-test"
-            //}
-            //container('node') {
-              //sh "npm run int-test"
-            //}
-          //}
-        //}
-
        // publish the edge tag
         stage('Publish Develop') {
             when {
@@ -104,18 +90,6 @@ spec:
                }
             }
         }
-
-        //stage('deploy to argo-dev') {
-            //when {
-                //branch "develop"
-            //}
-            //steps {
-                //build(job: "/ARGO/provision/clinical", parameters: [
-                     //[$class: 'StringParameterValue', name: 'AP_ARGO_ENV', value: 'dev' ],
-                     //[$class: 'StringParameterValue', name: 'AP_ARGS_LINE', value: "--set-string image.tag=${version}-${commit}" ]
-                //])
-            //}
-        //}
 
         stage('Release & tag') {
           when {
@@ -137,17 +111,6 @@ spec:
           }
         }
 
-        //stage('deploy to argo-qa') {
-            //when {
-                //branch "master"
-            //}
-            //steps {
-                //build(job: "/ARGO/provision/clinical", parameters: [
-                      //[$class: 'StringParameterValue', name: 'AP_ARGO_ENV', value: 'qa' ],
-                      //[$class: 'StringParameterValue', name: 'AP_ARGS_LINE', value: "--set-string image.tag=${version}" ]
-                //])
-            //}
-        //}
     }
 
     post {
