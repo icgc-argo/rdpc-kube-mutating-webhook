@@ -130,11 +130,15 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 		return patches, err
 	}
 
+	if debug {
+		dumpPodSpecs(&pod)
+	}
+
 	if !isPodInNamespace(&pod, targetNamespace){
-		log.Println("Pod request with name '",pod.Name,"' does not belong to targetNamespace '",targetNamespace,"', skipping mutation.")
+		log.Printf("Pod request with name '%s' does not belong to targetNamespace '%s', skipping mutation.\n", pod.Name, targetNamespace)
 		return patches, nil
 	} else {
-		log.Println("Pod request with name '",pod.Name,"' detected for targetNamespace '",targetNamespace,"'. Continuing with mutation.")
+		log.Printf("Pod request with name '%s' detected for targetNamespace '%s'. Continuing with mutation.\n", pod.Name, targetNamespace)
 	}
 
 	if hasVolume(&pod, scratchVolumeName){
@@ -152,7 +156,7 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 	}
 
 	if debug {
-		dumpPodSpecs(&pod)
+		//dumpPodSpecs(&pod)
 		dumpPatches(patches)
 	}
 	return patches, nil
