@@ -9,8 +9,8 @@ services:
       SERVER_PORT: 8080
       SERVER_SSL_ENABLE: "false"
       APP_DEBUG: "true"
+      APP_DRYRUN: "false"
       APP_OVERRIDEVOLUMECOLLISIONS: "true"
-      APP_TARGETNAMESPACE: "webhook-demo"
       APP_EMPTYDIR_VOLUMENAME: "icgc-argo-scratch"
       APP_EMPTYDIR_MOUNTPATH:  "/icgc-argo-scratch"
     expose:
