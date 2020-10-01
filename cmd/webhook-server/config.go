@@ -80,8 +80,8 @@ type Config struct {
 	} `yaml:"server"`
 	App struct {
 		Debug bool `default:"false", validate:"required",yaml:"debug",envconfig:"APP_DEBUG"`
+		DryRun bool `default:"true", validate:"required",yaml:"dryRun",envconfig:"APP_DRYRUN"`
 		OverrideVolumeCollisions bool   `default:"false", validate:"required", yaml:"overrideVolumeCollisions", envconfig:"APP_OVERRIDEVOLUMECOLLISIONS"`
-		TargetContainerName      string `validate:"required", yaml:"targetContainerName", envconfig:"APP_TARGETCONTAINERNAME"`
 		EmptyDir                 struct {
 			VolumeName string `validate:"required", yaml:"volumeName", envconfig:"APP_EMPTYDIR_VOLUMENAME"`
 			MountPath  string `validate:"required", yaml:"mountPath", envconfig:"APP_EMPTYDIR_MOUNTPATH"`

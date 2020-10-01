@@ -39,10 +39,10 @@ var (
 
 	// Defaults
 	overrideVolumePathCollision = true
-	targetContainerName = "busybox"
 	scratchDirName = "/icgc-argo-scratch"
 	scratchVolumeName = "icgc-argo-scratch"
 	debug = false
+	dryRun = true
 )
 
 type EmptyDirData struct {
@@ -130,6 +130,9 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 		return patches, err
 	}
 
+	if debug {
+		dumpPodSpecs(&pod)
+	}
 
 	if hasVolume(&pod, scratchVolumeName){
 		log.Println("Already contains the scratch volume name: ", scratchVolumeName)
@@ -138,35 +141,38 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 
 	patches = appendEmptyDirPatch(patches)
 
-	var container, containerPos, err2 = findTargetContainer(&pod, targetContainerName)
-	if err2 != nil {
-		log.Println("Did not find container with name '",targetContainerName,"'. Skipping mutation")
-		return patches, nil
+	if pod.Spec.Containers != nil {
+		for containerPos, container := range pod.Spec.Containers {
+			var containerVolumeMount, volumeMountPos = findVolumeMount(&container)
+			patches =  appendVolumeMountPatch(patches, containerPos, volumeMountPos, containerVolumeMount)
+		}
 	}
 
-	var containerVolumeMount, volumeMountPos = findVolumeMount(container)
-	patches =  appendVolumeMountPatch(patches, containerPos, volumeMountPos, containerVolumeMount)
-
 	if debug {
-		dumpPodSpecs(&pod)
 		dumpPatches(patches)
 	}
 
-	return patches, nil
+	if dryRun{
+		var emptyPatches []patchOperation
+		return emptyPatches, nil
+	} else {
+		return patches, nil
+	}
 }
 
 func main() {
 	// Bind the config to the variables
 	var cfg = parseConfig()
-	targetContainerName = cfg.App.TargetContainerName
 	overrideVolumePathCollision = cfg.App.OverrideVolumeCollisions
 	scratchDirName = cfg.App.EmptyDir.MountPath
 	scratchVolumeName = cfg.App.EmptyDir.VolumeName
 	debug = cfg.App.Debug
+	dryRun = cfg.App.DryRun
 
 	// Start server
 	mux := http.NewServeMux()
 	mux.Handle("/mutate", admitFuncHandler(applySecurityDefaults))
+	mux.Handle("/health", healthFuncHandler())
 	server := &http.Server{
 		// We listen on port 8443 such that we do not need root privileges or extra capabilities for this server.
 		// The Service object will take care of mapping this port to the HTTPS port 443.
@@ -174,7 +180,7 @@ func main() {
 		Handler: mux,
 	}
 
-	log.Println("Starting server on port ",cfg.Server.Port," with TLS ENABLED=",cfg.Server.SSL.Enable)
+	log.Printf("Starting server on port %s with TLS ENABLED=%t, DEBUG=%t and DRY_RUN=%t\n", cfg.Server.Port, cfg.Server.SSL.Enable, cfg.App.Debug, cfg.App.DryRun)
 	if cfg.Server.SSL.Enable {
 		log.Fatal(server.ListenAndServeTLS(cfg.Server.SSL.CertPath, cfg.Server.SSL.KeyPath))
 	} else {

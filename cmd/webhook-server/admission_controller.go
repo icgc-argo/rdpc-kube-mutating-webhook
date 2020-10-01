@@ -45,9 +45,15 @@ type patchOperation struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
+type healthResponse struct {
+	Status string  `json:"status"`
+}
+
 // admitFunc is a callback for admission controller logic. Given an AdmissionRequest, it returns the sequence of patch
 // operations to be applied in case of success, or the error that will be shown when the operation is rejected.
 type admitFunc func(*v1beta1.AdmissionRequest) ([]patchOperation, error)
+
+type healthFunc func() (string, error)
 
 // isKubeNamespace checks if the given namespace is a Kubernetes-owned namespace.
 func isKubeNamespace(ns string) bool {
@@ -129,6 +135,15 @@ func doServeAdmitFunc(w http.ResponseWriter, r *http.Request, admit admitFunc) (
 	return bytes, nil
 }
 
+func doServeHealthFunc() ([]byte, error) {
+	var resp = healthResponse{ Status: "Ok" }
+	bytes, err := json.Marshal(&resp)
+	if err != nil {
+		return nil, fmt.Errorf("marshaling response: %v", err)
+	}
+	return bytes, nil
+}
+
 // serveAdmitFunc is a wrapper around doServeAdmitFunc that adds error handling and logging.
 func serveAdmitFunc(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	log.Print("Handling webhook request ...")
@@ -148,9 +163,30 @@ func serveAdmitFunc(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	}
 }
 
+func serveHealthFunc(w http.ResponseWriter) {
+	var writeErr error
+	if bytes, err := doServeHealthFunc(); err != nil {
+		log.Printf("Error handling webhook request: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		_, writeErr = w.Write([]byte(err.Error()))
+	} else {
+		_, writeErr = w.Write(bytes)
+	}
+
+	if writeErr != nil {
+		log.Printf("Could not write response: %v", writeErr)
+	}
+}
+
 // admitFuncHandler takes an admitFunc and wraps it into a http.Handler by means of calling serveAdmitFunc.
 func admitFuncHandler(admit admitFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		serveAdmitFunc(w, r, admit)
+	})
+}
+
+func healthFuncHandler() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		serveHealthFunc(w)
 	})
 }
