@@ -41,8 +41,8 @@ var (
 	overrideVolumePathCollision = true
 	scratchDirName = "/icgc-argo-scratch"
 	scratchVolumeName = "icgc-argo-scratch"
-	targetNamespace = ""
 	debug = false
+	dryRun = true
 )
 
 type EmptyDirData struct {
@@ -130,11 +130,8 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 		return patches, err
 	}
 
-	if !isPodInNamespace(&pod, targetNamespace){
-		log.Println("Pod request with name '",pod.Name,"' does not belong to targetNamespace '",targetNamespace,"', skipping mutation.")
-		return patches, nil
-	} else {
-		log.Println("Pod request with name '",pod.Name,"' detected for targetNamespace '",targetNamespace,"'. Continuing with mutation.")
+	if debug {
+		dumpPodSpecs(&pod)
 	}
 
 	if hasVolume(&pod, scratchVolumeName){
@@ -152,10 +149,15 @@ func applySecurityDefaults(req *v1beta1.AdmissionRequest) ([]patchOperation, err
 	}
 
 	if debug {
-		dumpPodSpecs(&pod)
 		dumpPatches(patches)
 	}
-	return patches, nil
+
+	if dryRun{
+		var emptyPatches []patchOperation
+		return emptyPatches, nil
+	} else {
+		return patches, nil
+	}
 }
 
 func main() {
@@ -164,8 +166,8 @@ func main() {
 	overrideVolumePathCollision = cfg.App.OverrideVolumeCollisions
 	scratchDirName = cfg.App.EmptyDir.MountPath
 	scratchVolumeName = cfg.App.EmptyDir.VolumeName
-	targetNamespace = cfg.App.TargetNamespace
 	debug = cfg.App.Debug
+	dryRun = cfg.App.DryRun
 
 	// Start server
 	mux := http.NewServeMux()
@@ -178,7 +180,7 @@ func main() {
 		Handler: mux,
 	}
 
-	log.Println("Starting server on port ",cfg.Server.Port," with TLS ENABLED=",cfg.Server.SSL.Enable)
+	log.Printf("Starting server on port %s with TLS ENABLED=%t, DEBUG=%t and DRY_RUN=%t\n", cfg.Server.Port, cfg.Server.SSL.Enable, cfg.App.Debug, cfg.App.DryRun)
 	if cfg.Server.SSL.Enable {
 		log.Fatal(server.ListenAndServeTLS(cfg.Server.SSL.CertPath, cfg.Server.SSL.KeyPath))
 	} else {
