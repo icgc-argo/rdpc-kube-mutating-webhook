@@ -50,25 +50,21 @@ type EmptyDirData struct {
 	EmptyDir interface{} `json:"emptyDir"`
 }
 
-func buildEmptyDirDatas() []EmptyDirData{
-	var emptyDirData = EmptyDirData{ Name: scratchVolumeName, EmptyDir: struct {}{}}
-	var emptyDirDatas []EmptyDirData
-	return append(emptyDirDatas, emptyDirData)
+func buildEmptyDirData() EmptyDirData{
+	return EmptyDirData{ Name: scratchVolumeName, EmptyDir: struct {}{}}
 }
 
-func buildEmptyDirVolumeMounts() []corev1.VolumeMount{
-	var volumeMount = corev1.VolumeMount{Name: scratchVolumeName, MountPath: scratchDirName}
-	var volumeMounts []corev1.VolumeMount
-	return append(volumeMounts, volumeMount)
+func buildEmptyDirVolumeMount() corev1.VolumeMount{
+	return corev1.VolumeMount{Name: scratchVolumeName, MountPath: scratchDirName}
 }
 
 // Adds the correct Json Patch to the patches variable for the volumes section
 func appendEmptyDirPatch(patches []patchOperation) []patchOperation {
-	var emptyDirDatas = buildEmptyDirDatas()
+	var emptyDirData = buildEmptyDirData()
 	patches = append(patches, patchOperation{
 		Op:    "add",
-		Path:  "/spec/volumes",
-		Value: emptyDirDatas,
+		Path:  "/spec/volumes/0",
+		Value: emptyDirData,
 	})
 	return patches
 }
@@ -76,13 +72,13 @@ func appendEmptyDirPatch(patches []patchOperation) []patchOperation {
 // Adds the correct Json Patch to the patches variable for the container volume mounts section
 func appendVolumeMountPatch(patches []patchOperation, containerPos int, volumeMountPos int,
 	containerVolumeMount *corev1.VolumeMount) []patchOperation{
-	var emptyDirVolumeMounts = buildEmptyDirVolumeMounts()
+	var emptyDirVolumeMount = buildEmptyDirVolumeMount()
 
 	if containerVolumeMount == nil{
 		patches = append(patches, patchOperation{
 			Op:    "add",
-			Path:  "/spec/containers/"+strconv.Itoa(containerPos)+"/volumeMounts",
-			Value: emptyDirVolumeMounts,
+			Path:  "/spec/containers/"+strconv.Itoa(containerPos)+"/volumeMounts/0",
+			Value: emptyDirVolumeMount,
 		})
 
 	} else {
@@ -91,7 +87,7 @@ func appendVolumeMountPatch(patches []patchOperation, containerPos int, volumeMo
 			patches = append(patches, patchOperation{
 				Op:    "replace",
 				Path:  "/spec/containers/"+strconv.Itoa(containerPos)+"/volumeMounts/"+strconv.Itoa(volumeMountPos),
-				Value: emptyDirVolumeMounts,
+				Value: emptyDirVolumeMount,
 			})
 		} else {
 			log.Println("Container volume mount ",scratchVolumeName," already exists, and NOT overriding ")
