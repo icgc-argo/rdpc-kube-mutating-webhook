@@ -74,7 +74,7 @@ spec:
        // publish the edge tag
         stage('Publish Develop') {
             when {
-                branch "Add-publish-to-ghcr"
+                branch "develop"
             }
             steps {
                 container('docker') {
@@ -103,7 +103,7 @@ spec:
 
         stage('Release & tag') {
           when {
-            branch "Add-publish-to-ghcr"
+            branch "master"
           }
           steps {
               container('docker') {
