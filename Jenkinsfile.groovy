@@ -88,6 +88,16 @@ spec:
                     sh "docker push icgcargo/rdpc-kube-mutating-webhook:${version}-${commit}"
                     sh "docker push icgcargo/rdpc-kube-mutating-webhook:edge"
                }
+
+                container('docker') {
+                    withCredentials([usernamePassword(credentialsId:'argoContainers', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh 'docker login ghcr.io -u $USERNAME -p $PASSWORD'
+                    }
+
+                    sh "docker build --build-arg COMMIT_ID=${commit} --build-arg VERSION=${version} --network=host -f Dockerfile . -t ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:edge -t ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:${version}-${commit}"
+                    sh "docker push ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:${version}-${commit}"
+                    sh "docker push ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:edge"
+               }
             }
         }
 
@@ -108,6 +118,16 @@ spec:
                   sh "docker push icgcargo/rdpc-kube-mutating-webhook:${version}"
                   sh "docker push icgcargo/rdpc-kube-mutating-webhook:latest"
              }
+
+                container('docker') {
+                    withCredentials([usernamePassword(credentialsId:'argoContainers', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh 'docker login ghcr.io -u $USERNAME -p $PASSWORD'
+                    }
+
+                    sh "docker build --build-arg COMMIT_ID=${commit} --build-arg VERSION=${version} --network=host -f Dockerfile . -t ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:latest -t ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:${version}"
+                    sh "docker push ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:${version}"
+                    sh "docker push ghcr.io/icgc-argo/rdpc-kube-mutating-webhook:latest"
+               }
           }
         }
 
