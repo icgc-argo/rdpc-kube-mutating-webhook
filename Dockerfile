@@ -29,7 +29,7 @@ RUN apk add --no-cache git \
 env CGO_ENABLED=0 
 env GOOS=linux 
 RUN cd /srv/webhook-server \
-        && go mod init \
+        && go mod init . \
 	&& go build -ldflags="-s -w" -o webhook-server *.go
 
 
