@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
-ARG GO_VERSION=1.15
+ARG GO_VERSION=1.16
 FROM golang:${GO_VERSION}-alpine AS build
 
 COPY ./cmd /srv
